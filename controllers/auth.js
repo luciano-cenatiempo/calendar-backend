@@ -1,46 +1,91 @@
 const { response } = require("express");
-const { validationResult} = require('express-validator');
+const { validationResult } = require("express-validator");
+const bcrypt = require('bcryptjs')
+const Usuario = require("../models/Usuario");
 
 // En este archivo estan los funciones que tenemos que ejecutar en los endpoints
 
-const crearUsuario = (req, res = response) => {
-  const { name, email, password } = req.body;
+const crearUsuario = async (req, res = response) => {
+  const {  email, password } = req.body;
 
+  try {
 
-  // Manejo de errores
-  const errors = validationResult( req );
-  if(!errors.isEmpty()){
-    return res.status(400).json({
-        ok: false,
-        errors: errors.mapped()
+    let usuario = await Usuario.findOne({email}) // busca en la bd un usuario donde email:email 
+
+    if(usuario){
+      return res.status(400).json({
+        ok:false,
+        msg: 'El email ya está en uso para otro usuario'
+      });
+    }
+    
+    usuario = new Usuario(req.body); // Instancia al usuario con body del request
+
+    // Encryptar contraseña
+    const salt = bcrypt.genSaltSync(); // genera un salt con 10 vueltas por defecto para encriptar contra
+    usuario.password = bcrypt.hashSync(password, salt);
+
+    await usuario.save(); // Guarda en la base de datos. 
+
+    res.status(201).json({
+      ok: true,
+      uid: usuario.id,
+      name: usuario.name
+    });
+
+  } catch (error) {
+    console.log(error) // Esto se muestra por consola del server
+    res.status(500).json({
+      ok: false,
+      msg: 'Ocurrio un error, consulte al administrador.'
     })
+    
   }
-  
-  res.status(201).json({
-    ok: true,
-    msg: "Registro",
-    name,
-    email,
-    password,
-  });
 };
 
-const loginUsuario = (req, res = response) => {
+const loginUsuario = async (req, res = response) => {
   const { password, email } = req.body;
 
-  const errors = validationResult(req);
-  if(!errors.isEmpty()){
-    return res.status(400).json({
+  try {
+
+    const usuario = await Usuario.findOne({email});
+
+    if(!usuario){
+      return res.status(400).json({
+        ok:false,
+        msg:'El usuario o la contraseña son invalidos, reintente.'
+      });
+    }
+    
+
+    // Confirmar los passwords
+    const validPassword = bcrypt.compareSync(password, usuario.password);
+    
+
+    if (!validPassword){
+      return res.status(400).json({
         ok: false,
-        errors: errors.mapped()
-    })
+        msg:'El usuario o la contraseña son invalidos, reintente.'
+      });
+    }
+
+    // Generar nuestro JWT
+
+    res.json({
+      ok: true,
+      uid: usuario.id,
+      name:usuario.name
+    });
+    
+  } catch (error) {
+    console.log(error) 
+    res.status(500).json({
+      ok: false,
+      msg: 'Ocurrio un error, consulte al administrador.'
+    });
+    
   }
-  res.json({
-    ok: true,
-    msg: "Login",
-    email,
-    password
-  });
+  
 };
 
 const revalidarToken = (req, res = response) => {

@@ -1,8 +1,12 @@
 const express = require('express');
+const { dbConnection } = require('./database/config');
 // Para poder usar variables de entorno tenmos que instalar el paquete npm i dotenv
 require('dotenv').config(); //asi lo importamos
 //crear el server de express
 const app = express();
+
+// Base de datos
+dbConnection();
 
 //directorio publico
 app.use(express.static('public'));
