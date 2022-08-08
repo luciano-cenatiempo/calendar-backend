@@ -1,6 +1,6 @@
 const {Schema, model} = require ('mongoose');
 
-// Es como la estructura del objeto que vamos a mandar a la base de datos. 
+// Es como la estructura del objeto de informacion que vamos a mandar a la base de datos. 
 const UsuarioSchema = Schema({
     name: {
         type: String,

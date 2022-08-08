@@ -2,6 +2,7 @@ const { response } = require("express");
 const { validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
 const Usuario = require("../models/Usuario");
+const { generarJWT } = require('../helpers/jwt'); 
 
 // En este archivo estan los funciones que tenemos que ejecutar en los endpoints
 
@@ -11,10 +12,11 @@ const crearUsuario = async (req, res = response) => {
   try {
 
     let usuario = await Usuario.findOne({email}) // busca en la bd un usuario donde email:email 
-
+    
+    // Si existe el usuario entonces devuelve el error
     if(usuario){
       return res.status(400).json({
-        ok:false,
+        ok: false,
         msg: 'El email ya está en uso para otro usuario'
       });
     }
@@ -27,10 +29,14 @@ const crearUsuario = async (req, res = response) => {
 
     await usuario.save(); // Guarda en la base de datos. 
 
+    // Generar JWT
+    const token = await generarJWT(usuario.uid, usuario.name);
+
     res.status(201).json({
       ok: true,
       uid: usuario.id,
-      name: usuario.name
+      name: usuario.name,
+      token
     });
 
   } catch (error) {
@@ -70,11 +76,13 @@ const loginUsuario = async (req, res = response) => {
     }
 
     // Generar nuestro JWT
+    const token = await generarJWT(usuario.uid, usuario.name);
 
     res.json({
       ok: true,
       uid: usuario.id,
-      name:usuario.name
+      name:usuario.name,
+      token
     });
     
   } catch (error) {
