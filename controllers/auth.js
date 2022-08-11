@@ -30,7 +30,7 @@ const crearUsuario = async (req, res = response) => {
     await usuario.save(); // Guarda en la base de datos. 
 
     // Generar JWT
-    const token = await generarJWT(usuario.uid, usuario.name);
+    const token = await generarJWT(usuario.id, usuario.name);
 
     res.status(201).json({
       ok: true,
@@ -76,7 +76,8 @@ const loginUsuario = async (req, res = response) => {
     }
 
     // Generar nuestro JWT
-    const token = await generarJWT(usuario.uid, usuario.name);
+    const token = await generarJWT(usuario.id, usuario.name);
+    console.log(usuario.id,'id')
 
     res.json({
       ok: true,
@@ -96,10 +97,19 @@ const loginUsuario = async (req, res = response) => {
   
 };
 
-const revalidarToken = (req, res = response) => {
+const revalidarToken = async(req, res = response) => {
+
+  const uid = req.uid; // Esta asignacion en el req viene del middleware
+  const name = req.name;
+
+  // Generar JWT 
+  const token = await generarJWT( req.uid, req.name);
+
   res.json({
     ok: true,
-    msg: "Revalidar token ",
+    uid,
+    name,
+    token
   });
 };
 
