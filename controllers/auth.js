@@ -11,7 +11,7 @@ const crearUsuario = async (req, res = response) => {
 
   try {
 
-    let usuario = await Usuario.findOne({email}) // busca en la bd un usuario donde email:email 
+    let usuario = await Usuario.findOne({ email }) // busca en la bd un usuario donde email:email 
     
     // Si existe el usuario entonces devuelve el error
     if(usuario){

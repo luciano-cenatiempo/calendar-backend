@@ -22,7 +22,6 @@ const validarJWT = (req, res = response, next) => {
         // Se asigna los valores a la req para pasarlas a la siguiente funcion con NEXT
         req.uid = payload.uid
         req.name = payload.name
-        console.log(req.uid)
         
     } catch (err) {
         return res.status(401).json({
